@@ -1,0 +1,9 @@
+Flask
+numpy
+pandas
+scikit-learn
+beautifulsoup4
+requests
+whois
+python-dateutil
+urllib3
