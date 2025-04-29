@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Performance Analysis - Phishing URL Detector</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* All your existing styles... */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary: #3a86ff;
+            --primary-dark: #2667cc;
+            --secondary: #ff006e;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --white: #ffffff;
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f6f9fc, #edf2fb);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .navbar-brand h1 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .navbar-brand i {
+            margin-right: 10px;
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+            bottom: 0;
+            left: 0;
+        }
+
+        .mobile-menu {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            width: 100%;
+        }
+
+        .page-header h1 {
+            color: var(--dark);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: var(--primary);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .performance-card {
+            background-color: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 900px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s;
+        }
+
+        .performance-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metrics-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .metric-title {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-group {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        .metric-label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            color: var(--primary-dark);
+        }
+
+        .metric-class {
+            display: inline-block;
+            width: 30px;
+            font-weight: bold;
+            margin-right: 1.5rem;
+        }
+
+        .confusion-matrix {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .confusion-title {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .matrix-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: var(--white);
+            color: var(--gray);
+            margin-top: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+            }
+            
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background-color: var(--white);
+                flex-direction: column;
+                padding: 1rem 0;
+                box-shadow: var(--shadow);
+            }
+            
+            .nav-links.active {
+                display: flex;
+            }
+            
+            .mobile-menu {
+                display: block;
+            }
+            
+            .metrics-container {
+                flex-direction: column;
+            }
+            
+            .metric-group {
+                margin-bottom: 1.5rem;
+            }
+        }
+        
+        /* Added for confusion matrix display */
+        .matrix-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .matrix-table {
+            border-collapse: collapse;
+            font-size: 1.2rem;
+            box-shadow: var(--shadow);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .matrix-table th, .matrix-table td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: center;
+        }
+        
+        .matrix-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .matrix-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .matrix-table tr:hover {
+            background-color: #ddd;
+        }
+        
+        .true-positive, .true-negative {
+            background-color: rgba(16, 185, 129, 0.2);
+            font-weight: 600;
+        }
+        
+        .false-positive, .false-negative {
+            background-color: rgba(239, 68, 68, 0.2);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="{{url_for('first')}}" class="navbar-brand">
+            <i class="fas fa-shield-alt"></i>
+            <h1>Phishing Detector</h1>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="{{url_for('first')}}" class="nav-link">Home</a>
+            {% if session.get('logged_in') %}
+            <a href="{{url_for('index')}}" class="nav-link">Prediction</a>
+            <a href="{{url_for('performance')}}" class="nav-link active">Performance</a>
+            <a href="{{url_for('chart')}}" class="nav-link">Chart</a>
+            <a href="{{url_for('logout')}}" class="nav-link">Logout</a>
+            {% else %}
+            <a href="{{url_for('login')}}" class="nav-link">Login</a>
+            {% endif %}
+        </div>
+        <div class="mobile-menu" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <p>Phishing Website Detection</p>
+            <h1>Performance Analysis</h1>
+        </div>
+        
+        <div class="performance-card">
+            <h2 class="metric-title">Model Performance Metrics</h2>
+            
+            <div class="metrics-container">
+                <div class="metric-group">
+                    <span class="metric-label">Class</span>
+                    <div>
+                        <span class="metric-class">-1</span>
+                        <span class="metric-class">1</span>
+                    </div>
+                </div>
+                <div class="metric-group">
+                    <span class="metric-label">Recall</span>
+                    <div>
+                        <span class="metric-value">0.99</span>
+                        <span class="metric-value">0.97</span>
+                    </div>
+                </div>
+                <div class="metric-group">
+                    <span class="metric-label">F1 Score</span>
+                    <div>
+                        <span class="metric-value">0.96</span>
+                        <span class="metric-value">0.99</span>
+                    </div>
+                </div>
+                <div class="metric-group">
+                    <span class="metric-label">Precision</span>
+                    <div>
+                        <span class="metric-value">0.97</span>
+                        <span class="metric-value">0.98</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="confusion-matrix">
+                <h2 class="confusion-title">Confusion Matrix</h2>
+                
+                <!-- Option 1: Try with absolute path -->
+                <img src="./static/download.png" alt="Matrix" class="matrix-image">
+                
+                <!-- Option 2: Try with relative path (uncomment if Option 1 doesn't work) -->
+                <!-- <img src="../static/con_img.jpeg" alt="Matrix" class="matrix-image"> -->
+                
+                <!-- Option 3: Try with base64 encoded image (uncomment and replace with actual base64 when available) -->
+                <!-- <img src="data:image/jpeg;base64,YOUR_BASE64_ENCODED_IMAGE_DATA" alt="Matrix" class="matrix-image"> -->
+                
+                <!-- Option 4: Render a HTML/CSS confusion matrix instead of an image -->
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>&copy; 2025 Phishing URL Detection. All Rights Reserved.</p>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
